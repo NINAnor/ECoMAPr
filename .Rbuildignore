@@ -1,3 +1,15 @@
 ^ECoMAPr\.Rproj$
 ^\.Rproj\.user$
 ^README\.Rmd$
+^\.pixi$
+^pixi\.toml$
+^pixi\.lock$
+^\.github$
+^\.vscode$
+^\.envrc$
+^\.gitattributes$
+^\.copier-answers\.yml$
+^\.pre-commit-config\.yaml$
+^\.pinact\.yaml$
+^copier\.yaml$
+^scripts$

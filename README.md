@@ -1,4 +1,3 @@
-
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 # ECoMAPr
@@ -25,5 +24,40 @@ if(!requireNamespace("BiocManager", quietly = TRUE)) {
 BiocManager::install(c("graph", "Rgraphviz"), dep = TRUE)
 install.packages("INLA", repos = c(getOption("repos"), INLA="https://inla.r-inla-download.org/R/stable"), dep = TRUE)
 # Install the ECoMAPr package
-devtools::install_github("joechip90/ECoMAPr")
+devtools::install_github("NINAnor/ECoMAPr")
+```
+
+## Development environment
+
+The repository includes a Pixi environment with R and development tools. Install
+it with:
+
+```bash
+pixi install
+```
+
+Run the second setup step for R dependencies not available through conda-forge:
+
+```bash
+pixi run setup-r-dependencies
+```
+
+Run an R script with `Rscript`:
+
+```bash
+pixi run Rscript path/to/script.R
+```
+
+Radian is optional; it starts an interactive R console:
+
+```bash
+pixi run radian
+```
+
+The repository's Prek hooks include R formatting and other checks. Install the
+git hooks or run the checks manually:
+
+```bash
+pixi run prek install
+pixi run prek --all-files
 ```
