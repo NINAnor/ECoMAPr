@@ -294,7 +294,7 @@ specifyCovariate <- function(x, ...) {
   }
   if(length(xnames) <= 0) {
     stop("invalid covariate specification argument: input vector has length zero")
-  } else if(length(xnames) > 1 && any(is.na(xnames) | xnames == "")) {
+  } else if(length(xnames) > 1 && any(is.na(xnames) | as.character(xnames) == "")) {
     stop("invalid covariate specification argument: input vectors of lengths greater then one must have named elements")
   }
   names(xin) <- xnames
