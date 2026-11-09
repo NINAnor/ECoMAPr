@@ -105,7 +105,7 @@ classifyOccDataType <- function(occData, datasetIDCol = "datasetKey", occurrence
   datasetComb <- apply(X = as.matrix(as.data.frame(inOccData)[, inDatatsetIDCol, drop = FALSE]), FUN = paste, collapse = "", MARGIN = 1)
   occVal <- rep(NA, nrow(inOccData))
   if(length(inOccurrenceStatusCol) > 0 && length(inDatatsetIDCol) > 0) {
-    
+
     # Find the datasets that have at least one absence
     hasAbsence <- unique(datasetComb[apply(X = as.matrix(as.data.frame(inOccData)[, inOccurrenceStatusCol, drop = FALSE]), FUN = function(curRow, absenceVals) {
       any(toupper(as.character(curRow)) %in% absenceVals)

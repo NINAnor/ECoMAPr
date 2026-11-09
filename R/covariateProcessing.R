@@ -2,9 +2,9 @@
 
 ### 1.1 ==== Set metadata for a scalar covariate ====
 #' @title Set Metadata for a Scalar Covariate
-#' 
+#'
 #' @description Create a covariate metadata object for a scalar covariate.
-#' 
+#'
 #' @param desc A character scalar giving a description of the covariate.
 #' @param units A character scalar giving informationn about the units of the
 #' covariate.
@@ -20,10 +20,10 @@
 #' \code{\link[grDevices]{colors}}), or a hexadecimal string like the type
 #' returned by \code{\link[grDevices]{rgb}}, that specifies the default colour
 #' to use for \code{NA} values when plotting maps of the covariate.
-#' 
+#'
 #' @return A \code{scalarcovmetadata} object that contains the entire metadata
 #' information.
-#' 
+#'
 #' @author Joseph D. Chipperfield, \email{joechip90@@googlemail.com}
 #' @seealso \code{\link[grDevices]{colors}}, \code{\link[grDevices]{rgb}}
 #' @export
@@ -58,10 +58,10 @@ scalarCovMetadata <- function(desc, units, mincol = grDevices::rgb(255, 225, 255
 
 ### 1.2 ==== Set metadata for a nominal/ordinal covariate ====
 #' @title Set Metadata for a Nominal Covariate
-#' 
+#'
 #' @description Create a covariate metadata object for a nominal (or ordinal)
 #' covariate.
-#' 
+#'
 #' @param desc A character scalar giving a description of the covariate.
 #' @param catdesc A character vector containing the description of each of the
 #' categories.
@@ -76,10 +76,10 @@ scalarCovMetadata <- function(desc, units, mincol = grDevices::rgb(255, 225, 255
 #' to use for \code{NA} values when plotting maps of the covariate.
 #' @param ordinal A logical scalar.  If \code{TRUE} then the categories are
 #' ordered ins everity or magnitude (for example, "low", "medium", "high").
-#' 
+#'
 #' @return A \code{nominalcovmetadata} object that contains the entire metadata
 #' information.
-#' 
+#'
 #' @author Joseph D. Chipperfield, \email{joechip90@@googlemail.com}
 #' @seealso \code{\link[grDevices]{colors}}, \code{\link[grDevices]{rgb}}
 #' @export
@@ -143,7 +143,7 @@ nominalCovMetadata <- function(desc, catdesc, catval = 1:length(catdesc), catcol
 #'
 #' @description Function to load a covariate layer and (optionally) add a
 #' timestamp to it.
-#' 
+#'
 #' @param x A character scalar containing the filename of the raster file
 #' containing the covariate information.
 #' @param subds See \code{\link[terra]{rast}}.
@@ -161,11 +161,11 @@ nominalCovMetadata <- function(desc, catdesc, catval = 1:length(catdesc), catcol
 #' @param dims See \code{\link[terra]{rast}}.
 #' @param lyrDate An object containing the date information of the covariate
 #' layer.  Can be any type coercible by \code{\link[base]{as.Date}}.
-#' 
+#'
 #' @return A \code{SpatRaster}.  If \code{lyrdate} is not \code{NULL} then the
 #' output has an extra attribute, \code{"lyrdate"}, the contains the timestemp
 #' information.
-#' 
+#'
 #' @author Joseph D. Chipperfield, \email{joechip90@@googlemail.com}
 #' @seealso \code{\link[base]{as.Date}}, \code{\link[terra]{rast}}
 #' @keywords internal
@@ -200,7 +200,7 @@ getCovariateLayer <- function(x, subds = 0, lyrs = NULL, drivers = NULL, opts = 
     }
   }
   # Import the spat raster
-  inRast <- terra::rast(x = xIn, subds = subds, lyrs = lyrs, drivers = drivers, opts = opts, win = win, snap = snap, vsi = vsi, raw = raw, noflip = noflip, guessCRS = guessCRS, domains = domains, md = md, dims = dims)[, 1]
+  inRast <- terra::rast(x = xIn, subds = subds, lyrs = lyrs, drivers = drivers, opts = opts, win = win, snap = snap, vsi = vsi, raw = raw, noflip = noflip, guessCRS = guessCRS, domains = domains, md = md, dims = dims)[[1]]
   if(!is.null(inLayDate)) {
     attr(inRast, "lyrdate") <- inLayDate
   }
@@ -212,12 +212,12 @@ getCovariateLayer <- function(x, subds = 0, lyrs = NULL, drivers = NULL, opts = 
 #'
 #' @description Function to assign a particular covariate layer for use in
 #' modelling functions.
-#' 
+#'
 #' @inheritParams getCovariateLayer
-#' 
+#'
 #' @return A language object containing an appropriately parametrised call
 #' to \code{\link{getCovariateLayer}}.
-#' 
+#'
 #' @author Joseph D. Chipperfield, \email{joechip90@@googlemail.com}
 #' @seealso \code{\link[base]{call}}, \code{\link[base]{as.Date}},
 #'  \code{\link[terra]{rast}}, \code{\link{getCovariateLayer}}
@@ -230,10 +230,10 @@ setCovariateLayer <- function(x, subds = 0, lyrs = NULL, drivers = NULL, opts = 
 
 ### 2.3 ==== Specify a covariate ====
 #' @title Specify the Structure of a Covariate
-#' 
+#'
 #' @description Function that specifies the data location and metadata of a
 #' covariate to be used in modelling.
-#' 
+#'
 #' @param x Either a character vector containing the locations of the rasters
 #' that make up this covariate or a list with each element itself being a list
 #' containing named elements that correspond to the arguments of
@@ -246,10 +246,10 @@ setCovariateLayer <- function(x, subds = 0, lyrs = NULL, drivers = NULL, opts = 
 #' arguments will also be passed to \code{\link{scalarCovMetadata}} or
 #' \code{\link{nominalCovMetadata}} to set the relevant metadata for the
 #' covariate.
-#' 
+#'
 #' @return A \code{"covariateSpec"} object containing the unevaluated expressions
-#' to import covariate information from raster files. 
-#' 
+#' to import covariate information from raster files.
+#'
 #' @author Joseph D. Chipperfield, \email{joechip90@@googlemail.com}
 #' @seealso \code{\link[base]{as.Date}}, \code{\link[terra]{rast}},
 #'  \code{\link{scalarCovMetadata}}, \code{\link{nominalCovMetadata}}
@@ -294,7 +294,7 @@ specifyCovariate <- function(x, ...) {
   }
   if(length(xnames) <= 0) {
     stop("invalid covariate specification argument: input vector has length zero")
-  } else if(length(xnames) > 1 && any(is.na(xnames) | xnames == "")) {
+  } else if(length(xnames) > 1 && any(is.na(xnames) | as.character(xnames) == "")) {
     stop("invalid covariate specification argument: input vectors of lengths greater then one must have named elements")
   }
   names(xin) <- xnames
@@ -328,29 +328,59 @@ specifyCovariate <- function(x, ...) {
 
 ### 2.4 ==== Align generic method ====
 #' @title Align the Covariate(s)
-#' 
+#'
 #' @description Function to align covariate raster layers to ensure they have
 #' the same spatial extent, resolution, and coordinate reference system.
-#' 
+#'
 #' @inheritParams align.covariateSpec
-#' 
+#'
 #' @return A \code{"covariateSpec"} object containing the unevaluated
 #' expressions to import the aligned covariate information.
-#' 
+#'
 #' @author Joseph D. Chipperfield, \email{joechip90@@googlemail.com}
 #' @seealso \code{\link[terra]{crs}}, \code{\link[terra]{writeRaster}},
 #'  \code{\link{specifyCovariate}}
 #' @export
 align <- function(spec, crs = NULL, xmin = NULL, xmax = NULL, ymin = NULL, ymax = NULL, cellres = NULL, forceAlign = FALSE, ...) {
-  UseMethod("align.covariateSpec")
+  UseMethod("align")
+}
+
+.scalarSanityCheck <- function(x, isnumeric = TRUE, lengthTwo = FALSE) {
+  xin <- x
+  if(isnumeric) {
+    xin <- tryCatch(as.numeric(xin), error = function(err) {
+      stop("invalid argument type: ", err)
+    })
+  } else {
+    xin <- tryCatch(as.character(xin), error = function(err) {
+      stop("invalid argument type: ", err)
+    })
+  }
+  if(length(xin) <= 0) {
+    xin <- NULL
+  } else if(!lengthTwo && length(xin) > 1) {
+    warning("input argument has a length greater than one: only the first element will be used")
+    xin <- xin[1]
+  } else if(lengthTwo) {
+    if(length(xin) == 1) {
+      xin <- c(xin, xin)
+    } else if(length(xin) > 2) {
+      warning("input argument has a length greater than two: only the first two elements will be used")
+      xin <- xin[1:2]
+    }
+  }
+  if(any(is.na(xin))) {
+    xin <- NULL
+  }
+  xin
 }
 
 ### 2.5 === Retrieve the spatial information about the covariate layer ====
 #' @title Retrieve Covariate Layer Spatial Information
-#' 
+#'
 #' @description Function to find the spatial information about the covariate
 #' layer that retrieves the information needed for alignment purposes
-#' 
+#'
 #' @param spec A \code{"covariateSpec"} object (as produced by
 #' \code{\link{specifyCovariate}}) containing the layers of the covariate to
 #' align.
@@ -375,45 +405,15 @@ align <- function(spec, crs = NULL, xmin = NULL, xmax = NULL, ymin = NULL, ymax 
 #' the resolution in the y-dimension. If length 1 then the values is used for
 #' the resolution in both dimensions.  If \code{NULL} the resolution  is
 #' calculated automatically from the finest resolution layer in the covariate.
-#' 
+#'
 #' @return A list of spatial information for each of the covariate layers.
-#' 
+#'
 #' @author Joseph D. Chipperfield, \email{joechip90@@googlemail.com}
 #' @seealso \code{\link[terra]{crs}}, \code{\link[terra]{writeRaster}},
 #'  \code{\link{specifyCovariate}}
 #' @keywords internal
 #' @export
 getCovariateLayerSpatialInfo <- function(spec, crs = NULL, xmin = NULL, xmax = NULL, ymin = NULL, ymax = NULL, cellres = NULL) {
-  # Function for sanity checking scalar input
-  scalarSanityCheck <- function(x, isnumeric = TRUE, lengthTwo = FALSE) {
-    xin <- x
-    if(isnumeric) {
-      xin <- tryCatch(as.numeric(xin), error = function(err) {
-        stop("invalid argument type: ", err)
-      })
-    } else {
-      xin <- tryCatch(as.character(xin), error = function(err) {
-        stop("invalid argument type: ", err)
-      })
-    }
-    if(length(xin) <= 0) {
-      xin <- NULL
-    } else if(!lengthTwo && length(xin) > 1) {
-      warning("input argument has a length greater than one: only the first element will be used")
-      xin <- xin[1]
-    } else if(lengthTwo) {
-      if(length(xin) == 1) {
-        xin <- c(xin, xin)
-      } else if(length(xin) > 2) {
-        warning("input argument has a length greater than two: only the first two elements will be used")
-        xin <- xin[1:2]
-      }
-    }
-    if(any(is.na(xin))) {
-      xin <- NULL
-    }
-    xin
-  }
   # Retrieve the input rasters' spatial information
   if(!inherits(spec, "covariateSpec")) {
     stop("input is not a covariate specification object")
@@ -433,7 +433,7 @@ getCovariateLayerSpatialInfo <- function(spec, crs = NULL, xmin = NULL, xmax = N
     outList
   }), names(spec))
   # Sanity check the other arguments
-  incrs <- scalarSanityCheck(crs, FALSE)
+  incrs <- .scalarSanityCheck(crs, FALSE)
   if(is.null(incrs)) {
     incrs <- rastDef[[1]]$crs
   }
@@ -475,27 +475,27 @@ getCovariateLayerSpatialInfo <- function(spec, crs = NULL, xmin = NULL, xmax = N
     }
     outList
   }, targetcrs = incrs), names(rastDef))
-  inxmin <- scalarSanityCheck(xmin)
+  inxmin <- .scalarSanityCheck(xmin)
   if(is.null(inxmin)) {
     # inxmin <- rastDef[[1]]$xmin
     inxmin <- max(sapply(X = rastDef, FUN = function(curDef) { curDef$xmin_conv }))
   }
-  inxmax <- scalarSanityCheck(xmax)
+  inxmax <- .scalarSanityCheck(xmax)
   if(is.null(inxmax)) {
     # inxmax <- rastDef[[1]]$xmax
     inxmax <- min(sapply(X = rastDef, FUN = function(curDef) { curDef$xmax_conv }))
   }
-  inymin <- scalarSanityCheck(ymin)
+  inymin <- .scalarSanityCheck(ymin)
   if(is.null(inymin)) {
     # inymin <- rastDef[[1]]$ymin
     inymin <- max(sapply(X = rastDef, FUN = function(curDef) { curDef$ymin_conv }))
   }
-  inymax <- scalarSanityCheck(ymax)
+  inymax <- .scalarSanityCheck(ymax)
   if(is.null(inymax)) {
     #inymax <- rastDef[[1]]$ymax
     inymax <- min(sapply(X = rastDef, FUN = function(curDef) { curDef$ymax_conv }))
   }
-  incellres <- scalarSanityCheck(cellres, lengthTwo = TRUE)
+  incellres <- .scalarSanityCheck(cellres, lengthTwo = TRUE)
   if(is.null(incellres)) {
     # incellres <- rastDef[[1]]$cellres
     incellres <- c(
@@ -521,10 +521,10 @@ getCovariateLayerSpatialInfo <- function(spec, crs = NULL, xmin = NULL, xmax = N
 
 ### 2.6 ==== Align a covariate layer ====
 #' @title Align the Covariate Layer
-#' 
+#'
 #' @description Function that ensures the layers of the covariate have the same
 #' spatial extent, resolution, and coordinate reference system.
-#' 
+#'
 #' @param spec A \code{"covariateSpec"} object (as produced by
 #' \code{\link{specifyCovariate}}) containing the layers of the covariate to
 #' align.
@@ -556,10 +556,10 @@ getCovariateLayerSpatialInfo <- function(spec, crs = NULL, xmin = NULL, xmax = N
 #' It is often useful to set a \code{filename} argument to direct the output
 #' for the aligned raster (otherwise the location defaults to
 #' \code{tempfile(fileext = ".gif")}.
-#' 
+#'
 #' @return A \code{"covariateSpec"} object containing the unevaluated
 #' expressions to import the aligned covariate information.
-#' 
+#'
 #' @author Joseph D. Chipperfield, \email{joechip90@@googlemail.com}
 #' @seealso \code{\link[terra]{crs}}, \code{\link[terra]{writeRaster}},
 #'  \code{\link{specifyCovariate}}
@@ -568,7 +568,7 @@ align.covariateSpec <- function(spec, crs = NULL, xmin = NULL, xmax = NULL, ymin
   # Retrieve the covariate layer spatial information
   rastDef <- getCovariateLayerSpatialInfo(spec, crs, xmin, xmax, ymin, ymax, cellres)
   outSpec <- spec
-  if(scalarSanityCheck(forceAlign) > 0 || !all(attr(rastDef, "alignStatus"))) {
+  if(.scalarSanityCheck(forceAlign) > 0 || !all(attr(rastDef, "alignStatus"))) {
     # Assemble the other arguments as arguments for the writeRaster function
     writeArgs <- list(...)
     if(is.null(writeArgs$filename)) {
@@ -586,9 +586,9 @@ align.covariateSpec <- function(spec, crs = NULL, xmin = NULL, xmax = NULL, ymin
       crs = attr(rastDef, "align_crs"),
       resolution = attr(rastDef, "align_cellres"),
       nlyrs = length(rastDef), names = names(rastDef))
-    cellCoords <- sf::st_as_sf(as.data.frame(terra::xyFromCell(writeArgs$x, 1:(terra::ncell(writeArgs$x)))), coords = c("x", "y"), crs = sf::st_crs(incrs))
+    cellCoords <- sf::st_as_sf(as.data.frame(terra::xyFromCell(writeArgs$x, 1:(terra::ncell(writeArgs$x)))), coords = c("x", "y"), crs = attr(rastDef, "align_crs"))
     # If the rasters aren't already aligned (or if the user is forcing the alignment) then align them
-    terra::setValues(writeArgs$x, values = sapply(X = 1:length(rastDef), FUN = function(curIndex, rastDef, tmpRast, spec, cellCoords) {
+    writeArgs$x <- terra::setValues(writeArgs$x, values = sapply(X = 1:length(rastDef), FUN = function(curIndex, rastDef, tmpRast, spec, cellCoords) {
       # Load the raster
       covRaster <- eval(spec[[curIndex]])
       outValues <- rep(NA, terra::ncell(tmpRast))
@@ -608,7 +608,7 @@ align.covariateSpec <- function(spec, crs = NULL, xmin = NULL, xmax = NULL, ymin
         if(rastDef[[curIndex]]$crs != terra::crs(tmpRast)) {
           tmpCoords <- sf::st_transform(cellCoords, rastDef[[curIndex]]$crs)
         }
-        outValues <- terra::extract(covRaster, tmpCoords)[, 1]
+        outValues <- terra::extract(covRaster, tmpCoords, ID = FALSE)[, 1]
       }
       outValues
     }, rastDef = rastDef, tmpRast = writeArgs$x, spec = spec, cellCoords = cellCoords), keepnames = TRUE)
@@ -623,6 +623,9 @@ align.covariateSpec <- function(spec, crs = NULL, xmin = NULL, xmax = NULL, ymin
       }
       outVal
     }, rastLoc = writeArgs$filename, lyrDates = names(spec))
+    names(outSpec) <- names(spec)
+    class(outSpec) <- class(spec)
+    attr(outSpec, "metadata") <- attr(spec, "metadata")
   }
   outSpec
 }
@@ -632,14 +635,14 @@ align.covariateSpec <- function(spec, crs = NULL, xmin = NULL, xmax = NULL, ymin
 #'
 #' @description Function to create a list of covariate specifications for use
 #' in ECoMAP modelling.
-#' 
+#'
 #' @param ... A named set of arguments. Each element should be a
 #' \code{"covariateSpec"} object as resulting from
 #' \code{\link{specifyCovariate}}.
-#' 
+#'
 #' @return A \code{"covariateSpecList"} object containing the unevaluated
-#' expressions to import covariate information from raster files. 
-#' 
+#' expressions to import covariate information from raster files.
+#'
 #' @author Joseph D. Chipperfield, \email{joechip90@@googlemail.com}
 #' @seealso \code{\link[base]{as.Date}}, \code{\link[terra]{rast}},
 #'  \code{\link{scalarCovMetadata}}, \code{\link{nominalCovMetadata}},
@@ -656,11 +659,11 @@ createCovariateSpecList <- function(...) {
 
 ### 2.8 ==== Align a covariate layer list ====
 #' @title Align the Covariate Layer List
-#' 
+#'
 #' @description Function that ensures the layers of each element in the list of
 #' covariates have the same spatial extent, resolution, and coordinate reference
 #' system.
-#' 
+#'
 #' @param spec A \code{"covariateSpecList"} object (as produced by
 #' \code{\link{createCovariateSpecList}}) containing the list of layers of the
 #' covariates to align.
@@ -692,10 +695,10 @@ createCovariateSpecList <- function(...) {
 #' It is often useful to set a \code{filename} argument to direct the output
 #' for the aligned raster (otherwise the location defaults to
 #' \code{tempfile(fileext = ".gif")}.
-#' 
+#'
 #' @return A \code{"covariateSpecList"} object containing the unevaluated
 #' expressions to import the aligned covariate information.
-#' 
+#'
 #' @author Joseph D. Chipperfield, \email{joechip90@@googlemail.com}
 #' @seealso \code{\link[terra]{crs}}, \code{\link[terra]{writeRaster}},
 #'  \code{\link{specifyCovariate}}
@@ -709,7 +712,7 @@ align.covariateSpecList <- function(spec, crs = NULL, xmin = NULL, xmax = NULL, 
     })
   }
   outSpec <- list()
-  if(length(inpsec) > 0) {
+  if(length(inspec) > 0) {
     inargs <- list(...)
     inargs$forceAlign <- forceAlign
     # Retrieve the spatial information of the first element
@@ -723,6 +726,8 @@ align.covariateSpecList <- function(spec, crs = NULL, xmin = NULL, xmax = NULL, 
     if(length(inspec) > 1) {
       # Get the raster information of the other covariates
       rastInfo <- append(list(rastInfo), lapply(X = inspec[2:length(inspec)], FUN = getCovariateLayerSpatialInfo, crs = inargs$crs, xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, cellres = cellres))
+    } else {
+      rastInfo <- list(rastInfo)
     }
     names(rastInfo) <- names(inspec)
     # If the bounding box arguments are NULL then calculate the minimum bounding

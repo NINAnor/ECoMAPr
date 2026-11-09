@@ -198,7 +198,7 @@ processDatasetTitle <- function(inTitles, targetWidth) {
 #'
 #' @return A \code{data.frame} containing the taxonomic information for all
 #' matching taxa according to the criteria specified in the function arguments.
-#' 
+#'
 #' @details The \code{\link[rgbif]{name_lookup}} functions that is used in this
 #' function has been flagged as deprecated. However, the suggested replacements
 #' for this function are in a package that has been removed from CRAN and
@@ -208,7 +208,7 @@ processDatasetTitle <- function(inTitles, targetWidth) {
 #' upon the deprecated function for the time being but we will update the
 #' internal implementation of this function when CRAN-compliant options become
 #' available.
-#' 
+#'
 #' The \code{synonyms} argument is a character vector containing the set of
 #' taxonomic databases to check for possible synonyms. Each element of the
 #' character may have the following (case-insensitive) values: \code{"gbif"}
@@ -1195,7 +1195,7 @@ gbifOccDownload <- function(user, pwd, email, curlopts = list(), body = NULL, pi
   if(length(isAsSF) <= 0) {
     isAsSF <- formals(gbifOccDownload)$assf
   } else if(length(isAsSF) > 1) {
-    warning("length of \"assf\" argument greater than one: only the first element will be used"=)
+    warning("length of \"assf\" argument greater than one: only the first element will be used")
     isAsSF <- isAsSF[1]
   }
   if(is.na(isAsSF)) {
