@@ -623,6 +623,9 @@ align.covariateSpec <- function(spec, crs = NULL, xmin = NULL, xmax = NULL, ymin
       }
       outVal
     }, rastLoc = writeArgs$filename, lyrDates = names(spec))
+    names(outSpec) <- names(spec)
+    class(outSpec) <- class(spec)
+    attr(outSpec, "metadata") <- attr(spec, "metadata")
   }
   outSpec
 }
