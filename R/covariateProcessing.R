@@ -342,7 +342,7 @@ specifyCovariate <- function(x, ...) {
 #'  \code{\link{specifyCovariate}}
 #' @export
 align <- function(spec, crs = NULL, xmin = NULL, xmax = NULL, ymin = NULL, ymax = NULL, cellres = NULL, forceAlign = FALSE, ...) {
-  UseMethod("align.covariateSpec")
+  UseMethod("align")
 }
 
 ### 2.5 === Retrieve the spatial information about the covariate layer ====
