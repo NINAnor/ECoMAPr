@@ -586,7 +586,7 @@ align.covariateSpec <- function(spec, crs = NULL, xmin = NULL, xmax = NULL, ymin
       crs = attr(rastDef, "align_crs"),
       resolution = attr(rastDef, "align_cellres"),
       nlyrs = length(rastDef), names = names(rastDef))
-    cellCoords <- sf::st_as_sf(as.data.frame(terra::xyFromCell(writeArgs$x, 1:(terra::ncell(writeArgs$x)))), coords = c("x", "y"), crs = sf::st_crs(incrs))
+    cellCoords <- sf::st_as_sf(as.data.frame(terra::xyFromCell(writeArgs$x, 1:(terra::ncell(writeArgs$x)))), coords = c("x", "y"), crs = attr(rastDef, "align_crs"))
     # If the rasters aren't already aligned (or if the user is forcing the alignment) then align them
     terra::setValues(writeArgs$x, values = sapply(X = 1:length(rastDef), FUN = function(curIndex, rastDef, tmpRast, spec, cellCoords) {
       # Load the raster
