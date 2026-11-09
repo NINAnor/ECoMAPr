@@ -1195,7 +1195,7 @@ gbifOccDownload <- function(user, pwd, email, curlopts = list(), body = NULL, pi
   if(length(isAsSF) <= 0) {
     isAsSF <- formals(gbifOccDownload)$assf
   } else if(length(isAsSF) > 1) {
-    warning("length of \"assf\" argument greater than one: only the first element will be used"=)
+    warning("length of \"assf\" argument greater than one: only the first element will be used")
     isAsSF <- isAsSF[1]
   }
   if(is.na(isAsSF)) {
