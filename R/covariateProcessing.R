@@ -709,7 +709,7 @@ align.covariateSpecList <- function(spec, crs = NULL, xmin = NULL, xmax = NULL, 
     })
   }
   outSpec <- list()
-  if(length(inpsec) > 0) {
+  if(length(inspec) > 0) {
     inargs <- list(...)
     inargs$forceAlign <- forceAlign
     # Retrieve the spatial information of the first element
