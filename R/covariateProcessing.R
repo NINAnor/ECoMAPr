@@ -588,7 +588,7 @@ align.covariateSpec <- function(spec, crs = NULL, xmin = NULL, xmax = NULL, ymin
       nlyrs = length(rastDef), names = names(rastDef))
     cellCoords <- sf::st_as_sf(as.data.frame(terra::xyFromCell(writeArgs$x, 1:(terra::ncell(writeArgs$x)))), coords = c("x", "y"), crs = attr(rastDef, "align_crs"))
     # If the rasters aren't already aligned (or if the user is forcing the alignment) then align them
-    terra::setValues(writeArgs$x, values = sapply(X = 1:length(rastDef), FUN = function(curIndex, rastDef, tmpRast, spec, cellCoords) {
+    writeArgs$x <- terra::setValues(writeArgs$x, values = sapply(X = 1:length(rastDef), FUN = function(curIndex, rastDef, tmpRast, spec, cellCoords) {
       # Load the raster
       covRaster <- eval(spec[[curIndex]])
       outValues <- rep(NA, terra::ncell(tmpRast))
@@ -608,7 +608,7 @@ align.covariateSpec <- function(spec, crs = NULL, xmin = NULL, xmax = NULL, ymin
         if(rastDef[[curIndex]]$crs != terra::crs(tmpRast)) {
           tmpCoords <- sf::st_transform(cellCoords, rastDef[[curIndex]]$crs)
         }
-        outValues <- terra::extract(covRaster, tmpCoords)[, 1]
+        outValues <- terra::extract(covRaster, tmpCoords, ID = FALSE)[, 1]
       }
       outValues
     }, rastDef = rastDef, tmpRast = writeArgs$x, spec = spec, cellCoords = cellCoords), keepnames = TRUE)
