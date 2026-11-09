@@ -38,7 +38,7 @@ Authors@R: c(
     role = c("aut"),
     email = "joachim.topper@nina.no"
   ))
-Maintainer: Joseph D. Chipperfield <joechip90@googlemail.com>
+Maintainer: Joseph D. Chipperfield <joseph.chipperfield@nina.no>
 Description: A package of convienient implementations of the modelling scripts used in
 	the analyses for the ECoMAP project.
 License: GPL-3 + file LICENSE
