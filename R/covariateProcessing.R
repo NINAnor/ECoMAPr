@@ -723,6 +723,8 @@ align.covariateSpecList <- function(spec, crs = NULL, xmin = NULL, xmax = NULL, 
     if(length(inspec) > 1) {
       # Get the raster information of the other covariates
       rastInfo <- append(list(rastInfo), lapply(X = inspec[2:length(inspec)], FUN = getCovariateLayerSpatialInfo, crs = inargs$crs, xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, cellres = cellres))
+    } else {
+      rastInfo <- list(rastInfo)
     }
     names(rastInfo) <- names(inspec)
     # If the bounding box arguments are NULL then calculate the minimum bounding
