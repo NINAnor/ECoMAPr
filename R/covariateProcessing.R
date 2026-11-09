@@ -345,6 +345,36 @@ align <- function(spec, crs = NULL, xmin = NULL, xmax = NULL, ymin = NULL, ymax 
   UseMethod("align")
 }
 
+.scalarSanityCheck <- function(x, isnumeric = TRUE, lengthTwo = FALSE) {
+  xin <- x
+  if(isnumeric) {
+    xin <- tryCatch(as.numeric(xin), error = function(err) {
+      stop("invalid argument type: ", err)
+    })
+  } else {
+    xin <- tryCatch(as.character(xin), error = function(err) {
+      stop("invalid argument type: ", err)
+    })
+  }
+  if(length(xin) <= 0) {
+    xin <- NULL
+  } else if(!lengthTwo && length(xin) > 1) {
+    warning("input argument has a length greater than one: only the first element will be used")
+    xin <- xin[1]
+  } else if(lengthTwo) {
+    if(length(xin) == 1) {
+      xin <- c(xin, xin)
+    } else if(length(xin) > 2) {
+      warning("input argument has a length greater than two: only the first two elements will be used")
+      xin <- xin[1:2]
+    }
+  }
+  if(any(is.na(xin))) {
+    xin <- NULL
+  }
+  xin
+}
+
 ### 2.5 === Retrieve the spatial information about the covariate layer ====
 #' @title Retrieve Covariate Layer Spatial Information
 #' 
@@ -384,36 +414,6 @@ align <- function(spec, crs = NULL, xmin = NULL, xmax = NULL, ymin = NULL, ymax 
 #' @keywords internal
 #' @export
 getCovariateLayerSpatialInfo <- function(spec, crs = NULL, xmin = NULL, xmax = NULL, ymin = NULL, ymax = NULL, cellres = NULL) {
-  # Function for sanity checking scalar input
-  scalarSanityCheck <- function(x, isnumeric = TRUE, lengthTwo = FALSE) {
-    xin <- x
-    if(isnumeric) {
-      xin <- tryCatch(as.numeric(xin), error = function(err) {
-        stop("invalid argument type: ", err)
-      })
-    } else {
-      xin <- tryCatch(as.character(xin), error = function(err) {
-        stop("invalid argument type: ", err)
-      })
-    }
-    if(length(xin) <= 0) {
-      xin <- NULL
-    } else if(!lengthTwo && length(xin) > 1) {
-      warning("input argument has a length greater than one: only the first element will be used")
-      xin <- xin[1]
-    } else if(lengthTwo) {
-      if(length(xin) == 1) {
-        xin <- c(xin, xin)
-      } else if(length(xin) > 2) {
-        warning("input argument has a length greater than two: only the first two elements will be used")
-        xin <- xin[1:2]
-      }
-    }
-    if(any(is.na(xin))) {
-      xin <- NULL
-    }
-    xin
-  }
   # Retrieve the input rasters' spatial information
   if(!inherits(spec, "covariateSpec")) {
     stop("input is not a covariate specification object")
@@ -433,7 +433,7 @@ getCovariateLayerSpatialInfo <- function(spec, crs = NULL, xmin = NULL, xmax = N
     outList
   }), names(spec))
   # Sanity check the other arguments
-  incrs <- scalarSanityCheck(crs, FALSE)
+  incrs <- .scalarSanityCheck(crs, FALSE)
   if(is.null(incrs)) {
     incrs <- rastDef[[1]]$crs
   }
@@ -475,27 +475,27 @@ getCovariateLayerSpatialInfo <- function(spec, crs = NULL, xmin = NULL, xmax = N
     }
     outList
   }, targetcrs = incrs), names(rastDef))
-  inxmin <- scalarSanityCheck(xmin)
+  inxmin <- .scalarSanityCheck(xmin)
   if(is.null(inxmin)) {
     # inxmin <- rastDef[[1]]$xmin
     inxmin <- max(sapply(X = rastDef, FUN = function(curDef) { curDef$xmin_conv }))
   }
-  inxmax <- scalarSanityCheck(xmax)
+  inxmax <- .scalarSanityCheck(xmax)
   if(is.null(inxmax)) {
     # inxmax <- rastDef[[1]]$xmax
     inxmax <- min(sapply(X = rastDef, FUN = function(curDef) { curDef$xmax_conv }))
   }
-  inymin <- scalarSanityCheck(ymin)
+  inymin <- .scalarSanityCheck(ymin)
   if(is.null(inymin)) {
     # inymin <- rastDef[[1]]$ymin
     inymin <- max(sapply(X = rastDef, FUN = function(curDef) { curDef$ymin_conv }))
   }
-  inymax <- scalarSanityCheck(ymax)
+  inymax <- .scalarSanityCheck(ymax)
   if(is.null(inymax)) {
     #inymax <- rastDef[[1]]$ymax
     inymax <- min(sapply(X = rastDef, FUN = function(curDef) { curDef$ymax_conv }))
   }
-  incellres <- scalarSanityCheck(cellres, lengthTwo = TRUE)
+  incellres <- .scalarSanityCheck(cellres, lengthTwo = TRUE)
   if(is.null(incellres)) {
     # incellres <- rastDef[[1]]$cellres
     incellres <- c(
@@ -568,7 +568,7 @@ align.covariateSpec <- function(spec, crs = NULL, xmin = NULL, xmax = NULL, ymin
   # Retrieve the covariate layer spatial information
   rastDef <- getCovariateLayerSpatialInfo(spec, crs, xmin, xmax, ymin, ymax, cellres)
   outSpec <- spec
-  if(scalarSanityCheck(forceAlign) > 0 || !all(attr(rastDef, "alignStatus"))) {
+  if(.scalarSanityCheck(forceAlign) > 0 || !all(attr(rastDef, "alignStatus"))) {
     # Assemble the other arguments as arguments for the writeRaster function
     writeArgs <- list(...)
     if(is.null(writeArgs$filename)) {
