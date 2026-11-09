@@ -200,7 +200,7 @@ getCovariateLayer <- function(x, subds = 0, lyrs = NULL, drivers = NULL, opts = 
     }
   }
   # Import the spat raster
-  inRast <- terra::rast(x = xIn, subds = subds, lyrs = lyrs, drivers = drivers, opts = opts, win = win, snap = snap, vsi = vsi, raw = raw, noflip = noflip, guessCRS = guessCRS, domains = domains, md = md, dims = dims)[, 1]
+  inRast <- terra::rast(x = xIn, subds = subds, lyrs = lyrs, drivers = drivers, opts = opts, win = win, snap = snap, vsi = vsi, raw = raw, noflip = noflip, guessCRS = guessCRS, domains = domains, md = md, dims = dims)[[1]]
   if(!is.null(inLayDate)) {
     attr(inRast, "lyrdate") <- inLayDate
   }
