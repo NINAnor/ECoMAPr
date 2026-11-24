@@ -1,0 +1,21 @@
+---
+title: "Creating Model Objects"
+vignette: >
+  %\VignetteIndexEntry{Creating Model Objects}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+knitr:
+  opts_chunk:
+    collapse: true
+    comment: '#>'
+---
+
+```{r}
+#| label: setup
+library(ECoMAPr)
+```
+
+```{r}
+# Location of the Sigma 2 web server that hosts the data
+sigma2WebServerLoc <- "https://ns11032k.web.sigma2.no"
+```

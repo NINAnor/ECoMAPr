@@ -125,9 +125,9 @@ nominalCovMetadata <- function(desc, catdesc, catval = 1:length(catdesc), catcol
   outVec$catinfo <- data.frame(
     value = incatval,
     col = matrix(
-      c(incatdesc, incatcol[(1:length(incatdesc) - 1) %% incatcol + 1]),
+      c(incatdesc, incatcol[(1:length(incatdesc) - 1) %% length(incatcol) + 1]),
       ncol = 2, dimnames = list(
-        incatval[(1:length(incatdesc) - 1) %% incatval + 1],
+        incatval[(1:length(incatdesc) - 1) %% length(incatval) + 1],
         c("desc", "col")
       )
     )
@@ -200,7 +200,7 @@ getCovariateLayer <- function(x, subds = 0, lyrs = NULL, drivers = NULL, opts = 
     }
   }
   # Import the spat raster
-  inRast <- terra::rast(x = xIn, subds = subds, lyrs = lyrs, drivers = drivers, opts = opts, win = win, snap = snap, vsi = vsi, raw = raw, noflip = noflip, guessCRS = guessCRS, domains = domains, md = md, dims = dims)[, 1]
+  inRast <- terra::rast(x = xIn, subds = subds, lyrs = lyrs, drivers = drivers, opts = opts, win = win, snap = snap, vsi = vsi, raw = raw, noflip = noflip, guessCRS = guessCRS, domains = domains, md = md, dims = dims)
   if(!is.null(inLayDate)) {
     attr(inRast, "lyrdate") <- inLayDate
   }
@@ -255,56 +255,50 @@ setCovariateLayer <- function(x, subds = 0, lyrs = NULL, drivers = NULL, opts = 
 #'  \code{\link{scalarCovMetadata}}, \code{\link{nominalCovMetadata}}
 #' @export
 specifyCovariate <- function(x, ...) {
-  # Sanity check the input
   xin <- x
-  xnames <- names(xin)
+  # Import the optional elements and check to see whether they have components
+  # that need to be recycled for seperate "getCovariate" calls
+  argList <- list(...)
+  inlyrs <- NULL
+  if(!is.null(argList$lyrs)) {
+    inlyrs <- argList$lyrs
+    argList <- argList[names(argList) != "lyrs"]
+  }
+  inlyrDate <- NULL
+  if(!is.null(argList$lyrDate)) {
+    inlyrDate <- argList$lyrDate
+    argList <- argList[names(argList) != "lyrDate"]
+  } else {
+    inlyrDate <- names(xin)
+    if(!is.null(inlyrDate)) {
+      inlyrDate <- sapply(X = xin, FUN = function(curElement) {
+        outVal <- NA
+        if(!is.character(curElement) && !is.null(curElement$lyrDate)) {
+          outVal <- curElement$lyrDate
+        }
+      })
+    }
+  }
+  if(anyNA(inlyrDate)) {
+    stop("invalid layer dates provided")
+  }
+  numlayers <- max(length(xin), length(inlyrs), length(inlyrDate))
+  if(length(xin) <= 0) {
+    stop("input filename or covariate layer specification call has length zero")
+  } else if(numlayers > 1 && length(inlyrDate) < numlayers) {
+    stop("more than one layer provided for a covariate but not every layer has been given a corresponding layer date")
+  }
   if(is.character(xin)) {
     # If the input is a character vector then convert it to a list
-    xin <- lapply(X = xin, FUN = function(curVal) { list(x = curVal) })
-  } else {
-    xin <- tryCatch(as.list(xin), error = function(err) {
-      stop("invalid covariate specification argument: ", err)
-    })
+    xin <- as.list(xin)
   }
-  if(!is.null(xnames)) {
-    # If the input has a names attribute then use that as date information
-    xnames <- tryCatch(as.Date(xnames), error = function(err) {
-      stop("covariate specification has invalid date information: ", err)
-    })
-    xin <- lapply(X = 1:length(xin), FUN = function(curIndx, xin, xnames) {
-      outVal <- xin[[curIndx]]
-      if(!is.null(names(outVal)) && !is.null(outVal$lyrDate)) {
-        if(outVal$lyrDate != xnames[curIndx]) {
-          warning("mistmatch of covariate layer date between specification and names attribute: will use the names attiribute version")
-          outVal$lyrDate <- xnames[curIndx]
-        }
-      } else {
-        outVal <- append(outVal, list(lyrDate = xnames[curIndx]))
-      }
-      outVal
-    }, xin = xin, xnames = xnames)
-  } else {
-    xnames <- sapply(X = xin, FUN = function(curElement) {
-      outEl <- NA
-      if(!is.null(curElement$lyrDate)) {
-        outEl <- as.Date(curElement$lyrDate)
-      }
-      outEl
-    })
-  }
-  if(length(xnames) <= 0) {
-    stop("invalid covariate specification argument: input vector has length zero")
-  } else if(length(xnames) > 1 && any(is.na(xnames) | xnames == "")) {
-    stop("invalid covariate specification argument: input vectors of lengths greater then one must have named elements")
-  }
-  names(xin) <- xnames
   # Find arguments that are in the nominal metadata function but aren't in the scalar
   # metadata function
-  argList <- list(...)
   inMetadata <- NULL
   nominalArgs <- methods::formalArgs(nominalCovMetadata)[
     !methods::formalArgs(nominalCovMetadata) %in% methods::formalArgs(scalarCovMetadata)
   ]
+  # Evaluate whether there are any elements in the ... arguments that are relevant for the metadata specification
   if(!is.null(names(argList))) {
     if(any(names(argList) %in% nominalArgs)) {
       # Input is a nominal covariate
@@ -316,11 +310,44 @@ specifyCovariate <- function(x, ...) {
       argList <- argList[!(names(argList) %in% methods::formalArgs(scalarCovMetadata))]
     }
   }
-  # Set each of the covariate layers
-  xout <- lapply(X = xin, FUN = function(curEl, argList) {
-    do.call(setCovariateLayer, append(curEl, argList))
-  }, argList = argList)
-  names(xout) <- xnames
+  # Go through each of the layers and create the layer specification call for each entry
+  xout <- lapply(X = 1:numlayers, FUN = function(curIndex, xin, inlyrs, inlyrDate, argList, numlayers) {
+    curx <- xin[[(curIndex - 1) %% length(xin) + 1]]
+    outVal <- xin
+    curlyr <- 1
+    curargs <- argList
+    if(!is.null(inlyrs)) {
+      curlyr <- inlyrs[(curIndex - 1) %% length(inlyrs) + 1]
+    }
+    curlyrDate <- NULL
+    if(!is.null(inlyrDate)) {
+      curlyrDate <- inlyrDate[(curIndex - 1) %% length(inlyrDate) + 1]
+    }
+    if(is.character(curx)) {
+      # If x is a character the use "setCovariateLayer" to return the unevaluated
+      # call to import the covariate information
+      curargs$x <- curx
+      curargs$lyrs <- curlyr
+      if(!is.null(curlyrDate)) {
+        curargs$lyrDate <- curlyrDate
+      }
+      outVal <- do.call(setCovariateLayer, curargs)
+    } else {
+      # Otherwise the entry is already a call object: simply modify the arguments
+      # accordingly
+      outVal[names(argList)] <- argList
+      outVal$x <- xin$x
+      outVal$lyrs <- curlyr
+      if(!is.null(curlyrDate)) {
+        outVal$lyrDate <- curlyrDate
+      }
+    }
+    outVal
+  }, xin = xin, inlyrs = inlyrs, inlyrDate = inlyrDate, argList = argList, numlayers = numlayers)
+  # Set the output attributes
+  if(!is.null(inlyrDate)) {
+    names(xout) <- inlyrDate[(1:numlayers - 1) %% length(inlyrDate) + 1]
+  }
   attr(xout, "metadata") <- inMetadata
   class(xout) <- c("covariateSpec", class(xout))
   xout
@@ -332,17 +359,49 @@ specifyCovariate <- function(x, ...) {
 #' @description Function to align covariate raster layers to ensure they have
 #' the same spatial extent, resolution, and coordinate reference system.
 #' 
-#' @inheritParams align.covariateSpec
+#' @param spec A covariate specification object or list of covariate
+#' specifications containing the covariate inforamtion to align.
+#' @param crs The coordinate reference system to use in the alignment (see
+#' \code{\link[terra]{crs}}).
+#' @param xmin The lower x-coordinate of the bounding box of the aligned raster.
+#' If \code{NULL} then this is calculated automatically from the overlapping
+#' extent of the composite layers.
+#' @param xmax The upper x-coordinate of the bounding box of the aligned raster.
+#' If \code{NULL} then this is calculated automatically from the overlapping
+#' extent of the composite layers.
+#' @param ymin The lower y-coordinate of the bounding box of the aligned raster.
+#' If \code{NULL} then this is calculated automatically from the overlapping
+#' extent of the composite layers.
+#' @param ymax The upper y-coordinate of the bounding box of the aligned raster.
+#' If \code{NULL} then this is calculated automatically from the overlapping
+#' extent of the composite layers.
+#' @param cellres A numeric vector containing the resolution of the cells in the
+#' aligned raster in the x and y dimension. If length 2 then the first element
+#' specifies the resolution in the x-dimension and the second element specifies
+#' the resolution in the y-dimension. If length 1 then the values is used for
+#' the resolution in both dimensions. If \code{NULL} the resolution is
+#' calculated automatically from the finest resolution layer in the covariate.
+#' @param forceAlign If \code{TRUE}, create a new aligned raster object and save
+#' it even if the existing layers are already aligned.
+#' @param ... Named arguments that can be used as arguments for
+#' \code{\link[terra]{writeRaster}} when saving the aligned SpatRaster object.
+#' It is often useful to set a filename argument to direct the output for the
+#' aligned raster (otherwise the location defaults to
+#' \code{tempfile(fileext = ".gif")} for instances where you're aligning an
+#' individual covariate or
+#' \code{paste0(file.path(tempdir(), names(spec)), ".gif")} for instances where
+#' you're aligning a list of covariates).
 #' 
-#' @return A \code{"covariateSpec"} object containing the unevaluated
-#' expressions to import the aligned covariate information.
+#' @return A \code{"covariateSpec"} or \code{"covariateSpecList"} object
+#' containing the unevaluated expressions to import the aligned covariate
+#' information.
 #' 
 #' @author Joseph D. Chipperfield, \email{joechip90@@googlemail.com}
 #' @seealso \code{\link[terra]{crs}}, \code{\link[terra]{writeRaster}},
-#'  \code{\link{specifyCovariate}}
+#'  \code{\link{align.covariateSpec}}, \code{\link{align.covariateSpecList}}
 #' @export
 align <- function(spec, crs = NULL, xmin = NULL, xmax = NULL, ymin = NULL, ymax = NULL, cellres = NULL, forceAlign = FALSE, ...) {
-  UseMethod("align.covariateSpec")
+  UseMethod("align")
 }
 
 ### 2.5 === Retrieve the spatial information about the covariate layer ====
@@ -433,8 +492,12 @@ getCovariateLayerSpatialInfo <- function(spec, crs = NULL, xmin = NULL, xmax = N
     outList
   }), names(spec))
   # Sanity check the other arguments
-  incrs <- scalarSanityCheck(crs, FALSE)
-  if(is.null(incrs)) {
+  incrs <- NULL
+  if(inherits(crs, "crs")) {
+    incrs <- crs
+  } else if(!is.null(crs)) {
+    incrs <- scalarSanityCheck(crs, FALSE)
+  } else {
     incrs <- rastDef[[1]]$crs
   }
   # First run through the covariate layers and work out spatial characteristics
@@ -450,14 +513,14 @@ getCovariateLayerSpatialInfo <- function(spec, crs = NULL, xmin = NULL, xmax = N
     if(curDef$crs != targetcrs) {
       # If the CRS are different between the layers then convert the bounding box
       # information accordingly
-      tempCoords <- sf::st_as_sf(matrix(
+      tempCoords <- sf::st_as_sf(as.data.frame(matrix(
         c(
           outList$xmin, outList$ymin,
           outList$xmin, outList$ymax,
           outList$xmax, outList$ymax,
           outList$xmax, outList$ymin
         ),
-        ncol = 2, byrow = TRUE, dimnames = list(NULL, c("x", "y"))),
+        ncol = 2, byrow = TRUE, dimnames = list(NULL, c("x", "y")))),
         coords = c("x", "y"), crs = sf::st_crs(outList$crs)
       )
       tempCoords <- sf::st_transform(tempCoords, sf::st_crs(targetcrs))
@@ -468,10 +531,10 @@ getCovariateLayerSpatialInfo <- function(spec, crs = NULL, xmin = NULL, xmax = N
       outList$ymax_conv <- outbbox["ymax"]
       numx <- (outList$xmax - outList$xmin) / outList$cellres[1]
       numy <- (outList$ymax - outList$ymin) / outList$cellres[2]
-      outList$cellres_conv <- c(
+      outList$cellres_conv <- ceiling(c(
         (outList$xmax_conv - outList$xmin_conv) / numx,
         (outList$ymax_conv - outList$ymin_conv) / numy
-      )
+      ))
     }
     outList
   }, targetcrs = incrs), names(rastDef))
@@ -555,7 +618,7 @@ getCovariateLayerSpatialInfo <- function(spec, crs = NULL, xmin = NULL, xmax = N
 #' \code{\link[terra]{writeRaster}} when saving the aligned SpatRaster object.
 #' It is often useful to set a \code{filename} argument to direct the output
 #' for the aligned raster (otherwise the location defaults to
-#' \code{tempfile(fileext = ".gif")}.
+#' \code{tempfile(fileext = ".gif")}).
 #' 
 #' @return A \code{"covariateSpec"} object containing the unevaluated
 #' expressions to import the aligned covariate information.
@@ -691,7 +754,7 @@ createCovariateSpecList <- function(...) {
 #' \code{\link[terra]{writeRaster}} when saving the aligned SpatRaster object.
 #' It is often useful to set a \code{filename} argument to direct the output
 #' for the aligned raster (otherwise the location defaults to
-#' \code{tempfile(fileext = ".gif")}.
+#' \code{paste0(file.path(tempdir(), names(spec)), ".gif")}).
 #' 
 #' @return A \code{"covariateSpecList"} object containing the unevaluated
 #' expressions to import the aligned covariate information.
@@ -709,7 +772,7 @@ align.covariateSpecList <- function(spec, crs = NULL, xmin = NULL, xmax = NULL, 
     })
   }
   outSpec <- list()
-  if(length(inpsec) > 0) {
+  if(length(inspec) > 0) {
     inargs <- list(...)
     inargs$forceAlign <- forceAlign
     # Retrieve the spatial information of the first element
