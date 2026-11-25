@@ -573,7 +573,7 @@ getCovariateLayerSpatialInfo <- function(spec, crs = NULL, xmin = NULL, xmax = N
   }
   # Check to see if the rasters are already aligned
   isAligned <- sapply(X = rastDef, FUN = function(curDef, crs, xmin, xmax, ymin, ymax, cellres) {
-    curDef$crs == crs && curDef$xmin == xmin && curDef$xmax == xmax && curDef$ymin == ymin && curDef$ymax == ymax && all(curDef$cellres == cellres)
+    sf::st_crs(curDef$crs) == sf::st_crs(crs) && curDef$xmin == xmin && curDef$xmax == xmax && curDef$ymin == ymin && curDef$ymax == ymax && all(curDef$cellres == cellres)
   }, crs = incrs, xmin = inxmin, xmax = inxmax, ymin = inymin, ymax = inymax, cellres = incellres)
   attr(rastDef, "alignStatus") <- isAligned
   attr(rastDef, "align_boundary") <- stats::setNames(c(inxmin, inxmax, inymin, inymax), c("xmin", "xmax", "ymin", "ymax"))
@@ -628,10 +628,27 @@ getCovariateLayerSpatialInfo <- function(spec, crs = NULL, xmin = NULL, xmax = N
 #'  \code{\link{specifyCovariate}}
 #' @export
 align.covariateSpec <- function(spec, crs = NULL, xmin = NULL, xmax = NULL, ymin = NULL, ymax = NULL, cellres = NULL, forceAlign = FALSE, ...) {
+  inforcealign <- forceAlign
+  if(is.null(inforcealign)) {
+    inforcealign <- FALSE
+  } else {
+    inforcealign <- tryCatch(as.logical(inforcealign), error = function(err) {
+      stop("force align argument is an invalid data type: ", err)
+    })
+  }
+  if(length(inforcealign) <= 0) {
+    inforcealign <- FALSE
+  } else if(length(inforcealign) > 1) {
+    warning("force align argument has length greater than one: only the first element will be used")
+    inforcealign <- inforcealign[1]
+  }
+  if(is.na(inforcealign)) {
+    inforcealign <- FALSE
+  }
   # Retrieve the covariate layer spatial information
   rastDef <- getCovariateLayerSpatialInfo(spec, crs, xmin, xmax, ymin, ymax, cellres)
   outSpec <- spec
-  if(scalarSanityCheck(forceAlign) > 0 || !all(attr(rastDef, "alignStatus"))) {
+  if(inforcealign || !all(attr(rastDef, "alignStatus"))) {
     # Assemble the other arguments as arguments for the writeRaster function
     writeArgs <- list(...)
     if(is.null(writeArgs$filename)) {
@@ -646,17 +663,22 @@ align.covariateSpec <- function(spec, crs = NULL, xmin = NULL, xmax = NULL, ymin
       xmax = attr(rastDef, "align_boundary")["xmax"],
       ymin = attr(rastDef, "align_boundary")["ymin"],
       ymax = attr(rastDef, "align_boundary")["ymax"],
-      crs = attr(rastDef, "align_crs"),
+      crs = ifelse(
+        # Differentiate between sf and terra CRS representations
+        inherits(attr(rastDef, "align_crs"), "crs"),
+        attr(rastDef, "align_crs")$wkt,
+        attr(rastDef, "align_crs")
+      ),
       resolution = attr(rastDef, "align_cellres"),
       nlyrs = length(rastDef), names = names(rastDef))
-    cellCoords <- sf::st_as_sf(as.data.frame(terra::xyFromCell(writeArgs$x, 1:(terra::ncell(writeArgs$x)))), coords = c("x", "y"), crs = sf::st_crs(incrs))
+    cellCoords <- sf::st_as_sf(as.data.frame(terra::xyFromCell(writeArgs$x, 1:(terra::ncell(writeArgs$x)))), coords = c("x", "y"), crs = sf::st_crs(writeArgs$x))
     # If the rasters aren't already aligned (or if the user is forcing the alignment) then align them
     terra::setValues(writeArgs$x, values = sapply(X = 1:length(rastDef), FUN = function(curIndex, rastDef, tmpRast, spec, cellCoords) {
       # Load the raster
       covRaster <- eval(spec[[curIndex]])
       outValues <- rep(NA, terra::ncell(tmpRast))
       if(
-        rastDef[[curIndex]]$crs == terra::crs(tmpRast) &&
+        sf::st_crs(rastDef[[curIndex]]$crs) == sf::st_crs(terra::crs(tmpRast)) &&
         rastDef[[curIndex]]$xmin == terra::xmin(tmpRast) &&
         rastDef[[curIndex]]$xmax == terra::xmax(tmpRast) &&
         rastDef[[curIndex]]$ymin == terra::ymin(tmpRast) &&
@@ -817,6 +839,7 @@ align.covariateSpecList <- function(spec, crs = NULL, xmin = NULL, xmax = NULL, 
     if(inargs$xmax <= inargs$xmin || inargs$ymax <= inargs$ymin) {
       stop("invalid bounding box coordinates: possible non-overlapping covariate rasters")
     }
+    inargs$cellres <- cellres
     # Set the filenames to store the aligned covariate rasters
     if(is.null(inargs$filename) || length(inargs$filename) <= 0) {
       inargs$filename <- tempdir(check = TRUE)
