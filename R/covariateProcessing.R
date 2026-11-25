@@ -531,10 +531,10 @@ getCovariateLayerSpatialInfo <- function(spec, crs = NULL, xmin = NULL, xmax = N
       outList$ymax_conv <- outbbox["ymax"]
       numx <- (outList$xmax - outList$xmin) / outList$cellres[1]
       numy <- (outList$ymax - outList$ymin) / outList$cellres[2]
-      outList$cellres_conv <- ceiling(c(
+      outList$cellres_conv <- c(
         (outList$xmax_conv - outList$xmin_conv) / numx,
         (outList$ymax_conv - outList$ymin_conv) / numy
-      ))
+      )
     }
     outList
   }, targetcrs = incrs), names(rastDef))

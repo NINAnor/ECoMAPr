@@ -35,3 +35,4 @@ install.packages("INLA", repos = c(getOption("repos"), INLA="https://inla.r-inla
 # Install the ECoMAPr package
 devtools::install_github("joechip90/ECoMAPr")
 ```
+

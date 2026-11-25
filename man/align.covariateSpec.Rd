@@ -55,7 +55,7 @@ save it even if the existing layers are already aligned.}
 \code{\link[terra]{writeRaster}} when saving the aligned SpatRaster object.
 It is often useful to set a \code{filename} argument to direct the output
 for the aligned raster (otherwise the location defaults to
-\code{tempfile(fileext = ".gif")}.}
+\code{tempfile(fileext = ".gif")}).}
 }
 \value{
 A \code{"covariateSpec"} object containing the unevaluated
