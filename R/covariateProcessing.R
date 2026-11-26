@@ -649,6 +649,7 @@ align.covariateSpec <- function(spec, crs = NULL, xmin = NULL, xmax = NULL, ymin
   rastDef <- getCovariateLayerSpatialInfo(spec, crs, xmin, xmax, ymin, ymax, cellres)
   outSpec <- spec
   if(inforcealign || !all(attr(rastDef, "alignStatus"))) {
+    # If the rasters aren't already aligned (or if the user is forcing the alignment) then align them
     # Assemble the other arguments as arguments for the writeRaster function
     writeArgs <- list(...)
     if(is.null(writeArgs$filename)) {
@@ -672,8 +673,7 @@ align.covariateSpec <- function(spec, crs = NULL, xmin = NULL, xmax = NULL, ymin
       resolution = attr(rastDef, "align_cellres"),
       nlyrs = length(rastDef), names = names(rastDef))
     cellCoords <- sf::st_as_sf(as.data.frame(terra::xyFromCell(writeArgs$x, 1:(terra::ncell(writeArgs$x)))), coords = c("x", "y"), crs = sf::st_crs(writeArgs$x))
-    # If the rasters aren't already aligned (or if the user is forcing the alignment) then align them
-    terra::setValues(writeArgs$x, values = sapply(X = 1:length(rastDef), FUN = function(curIndex, rastDef, tmpRast, spec, cellCoords) {
+    covValues <- sapply(X = 1:length(rastDef), FUN = function(curIndex, rastDef, tmpRast, spec, cellCoords) {
       # Load the raster
       covRaster <- eval(spec[[curIndex]])
       outValues <- rep(NA, terra::ncell(tmpRast))
@@ -690,15 +690,17 @@ align.covariateSpec <- function(spec, crs = NULL, xmin = NULL, xmax = NULL, ymin
       } else {
         # Rasters are not aligned: retrieve cell values
         tmpCoords <- cellCoords
-        if(rastDef[[curIndex]]$crs != terra::crs(tmpRast)) {
+        if(sf::st_crs(rastDef[[curIndex]]$crs) != sf::st_crs(terra::crs(tmpRast))) {
           tmpCoords <- sf::st_transform(cellCoords, rastDef[[curIndex]]$crs)
         }
-        outValues <- terra::extract(covRaster, tmpCoords)[, 1]
+        outValues <- terra::extract(covRaster, tmpCoords, ID = FALSE)[, 1]
       }
       outValues
-    }, rastDef = rastDef, tmpRast = writeArgs$x, spec = spec, cellCoords = cellCoords), keepnames = TRUE)
+    }, rastDef = rastDef, tmpRast = writeArgs$x, spec = spec, cellCoords = cellCoords)
+    writeArgs$x <- terra::setValues(writeArgs$x, values = covValues, keepnames = TRUE)
     # Write the raster to the output location
     do.call(terra::writeRaster, writeArgs)
+    # do.call(terra::writeRaster, writeArgs)
     outSpec <- lapply(X = 1:(terra::nlyr(writeArgs$x)), FUN = function(lyrIndx, rastLoc, lyrDates) {
       outVal <- NULL
       if(is.null(lyrDates)) {

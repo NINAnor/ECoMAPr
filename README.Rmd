@@ -26,13 +26,14 @@ You can install the development version of ECoMAPr from [GitHub](https://github.
 
 ``` r
 # Install the INLA dependancy for the ECoMAPr package (we are working to remove
-# this dependancy)
+# this dependancy).  INLA itself has some dependencies on Bioconductor packages
+# that have their own package manager.
 if(!requireNamespace("BiocManager", quietly = TRUE)) {
   install.packages("BiocManager")
 }
 BiocManager::install(c("graph", "Rgraphviz"), dep = TRUE)
 install.packages("INLA", repos = c(getOption("repos"), INLA="https://inla.r-inla-download.org/R/stable"), dep = TRUE)
 # Install the ECoMAPr package
-devtools::install_github("joechip90/ECoMAPr")
+pak::pak("NINAnor/ECoMAPr")
 ```
 
